@@ -1,0 +1,7 @@
+displayName: Treblle
+type: middleware
+import: github.com/Nelwhix/treblle-traefik
+summary: "[Demo] Using Treblle in traefik"
+
+testData:
+  foo: Bar
