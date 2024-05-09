@@ -1,5 +1,4 @@
-module github.com/Nelwhix/treblle-traefik
+module github.com/Treblle/traefik-plugin-treblle-go
 
-go 1.22
+go 1.19
 
-require github.com/google/uuid v1.6.0 // indirect
