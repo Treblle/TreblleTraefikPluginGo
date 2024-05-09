@@ -1,5 +1,10 @@
 package treblle_traefik
 
+import (
+	"fmt"
+	"os"
+)
+
 func generateFieldsToMask(additionalFieldsToMask []string) map[string]bool {
 	defaultFieldsToMask := []string{
 		"password",
@@ -23,4 +28,10 @@ func generateFieldsToMask(additionalFieldsToMask []string) map[string]bool {
 	}
 
 	return fieldsToMask
+}
+
+func logError(err error) {
+	prefix := "Error in treblle traefik plugin: "
+
+	os.Stdout.WriteString(fmt.Sprintf("%v%v\n", prefix, err.Error()))
 }

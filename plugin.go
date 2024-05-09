@@ -2,10 +2,10 @@ package treblle_traefik
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	"time"
 )
 
@@ -13,6 +13,9 @@ type Config struct {
 	ApiKey                 string
 	ProjectId              string
 	AdditionalFieldsToMask []string
+	RoutesToBlackList      []string
+	RoutesRegex            string
+	DebugMode              bool
 }
 
 func CreateConfig() *Config {
@@ -20,13 +23,16 @@ func CreateConfig() *Config {
 }
 
 type Treblle struct {
-	next         http.Handler
-	name         string
-	ApiKey       string
-	ProjectId    string
-	FieldsMap    map[string]bool
-	serverInfo   ServerInfo
-	languageInfo LanguageInfo
+	next              http.Handler
+	name              string
+	ApiKey            string
+	ProjectId         string
+	FieldsMap         map[string]bool
+	RoutesToBlackList []string
+	RoutesRegex       string
+	serverInfo        ServerInfo
+	languageInfo      LanguageInfo
+	DebugMode         bool
 }
 
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
@@ -41,8 +47,18 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	if config.ProjectId != "" {
 		t.ProjectId = config.ProjectId
 	}
+	if config.RoutesRegex != "" {
+		t.RoutesRegex = config.RoutesRegex
+	}
 	if len(config.AdditionalFieldsToMask) > 0 {
 		t.FieldsMap = generateFieldsToMask(config.AdditionalFieldsToMask)
+	}
+	if len(config.RoutesToBlackList) > 0 {
+		t.RoutesToBlackList = config.RoutesToBlackList
+	}
+
+	if config.DebugMode {
+		t.DebugMode = true
 	}
 
 	t.serverInfo = getServerInfo()
@@ -52,6 +68,32 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 }
 
 func (t *Treblle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if len(t.RoutesToBlackList) > 0 {
+		for _, route := range t.RoutesToBlackList {
+			if r.RequestURI == route {
+				t.next.ServeHTTP(w, r)
+				return
+			}
+		}
+	}
+
+	if t.RoutesRegex != "" {
+		re, err := regexp.Compile(t.RoutesRegex)
+
+		if err != nil {
+			if t.DebugMode {
+				logError(err)
+			}
+			t.next.ServeHTTP(w, r)
+			return
+		}
+
+		if re.MatchString(r.RequestURI) {
+			t.next.ServeHTTP(w, r)
+			return
+		}
+	}
+
 	startTime := time.Now()
 	reqInfo, err := t.getRequestInfo(r, startTime)
 	rec := httptest.NewRecorder()
@@ -69,21 +111,19 @@ func (t *Treblle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !errors.Is(err, ErrNotJson) {
-		ti := Metadata{
-			ApiKey:    t.ApiKey,
-			ProjectID: t.ProjectId,
-			Version:   "0.0.1",
-			Sdk:       "go",
-			Data: DataInfo{
-				Server:   t.serverInfo,
-				Language: t.languageInfo,
-				Request:  reqInfo,
-				Response: t.getResponseInfo(rec, startTime),
-			},
-		}
-		os.Stdout.WriteString("Sending data to treblle...")
-		// don't block execution while sending data to Treblle
-		go t.sendToTreblle(ti)
+	ti := Metadata{
+		ApiKey:    t.ApiKey,
+		ProjectID: t.ProjectId,
+		Version:   "0.0.1",
+		Sdk:       "go",
+		Data: DataInfo{
+			Server:   t.serverInfo,
+			Language: t.languageInfo,
+			Request:  reqInfo,
+			Response: t.getResponseInfo(rec, startTime),
+		},
 	}
+	os.Stdout.WriteString("Sending data to treblle...")
+	// don't block execution while sending data to Treblle
+	go t.sendToTreblle(ti)
 }

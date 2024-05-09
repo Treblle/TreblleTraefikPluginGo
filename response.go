@@ -2,7 +2,6 @@ package treblle_traefik
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http/httptest"
 	"os"
 	"time"
@@ -54,11 +53,6 @@ func (t *Treblle) getResponseInfo(response *httptest.ResponseRecorder, startTime
 	headersJson, _ := json.Marshal(headers)
 	sanitizedHeaders, _ := t.getMaskedJSON(headersJson)
 	re.Headers = sanitizedHeaders
-	var jsonData interface{}
 
-	err = json.Unmarshal(sanitizedHeaders, &jsonData)
-	if err != nil {
-		fmt.Println("Error parsing raw message:", err)
-	}
 	return re
 }
