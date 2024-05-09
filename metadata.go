@@ -37,7 +37,6 @@ type LanguageInfo struct {
 	Version string `json:"version"`
 }
 
-// Get information about the server environment
 func getServerInfo() ServerInfo {
 	return ServerInfo{
 		Ip:        "",
@@ -49,7 +48,6 @@ func getServerInfo() ServerInfo {
 	}
 }
 
-// Get information about the programming language
 func getLanguageInfo() LanguageInfo {
 	return LanguageInfo{
 		Name:    "go",
@@ -57,7 +55,6 @@ func getLanguageInfo() LanguageInfo {
 	}
 }
 
-// Get information about the operating system that is running on the server
 func getOsInfo() OsInfo {
 	return OsInfo{
 		Name:         runtime.GOOS,

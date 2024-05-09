@@ -3,7 +3,6 @@ package treblle_traefik
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -21,8 +20,6 @@ type RequestInfo struct {
 	Headers   json.RawMessage `json:"headers"`
 	Body      json.RawMessage `json:"body"`
 }
-
-var ErrNotJson = errors.New("request body is not JSON")
 
 func (t *Treblle) getRequestInfo(r *http.Request, startTime time.Time) (RequestInfo, error) {
 	// TODO: for debugging only, remove before launch
@@ -52,25 +49,19 @@ func (t *Treblle) getRequestInfo(r *http.Request, startTime time.Time) (RequestI
 		if err != nil {
 			return ri, err
 		}
-		// open 2 NopClosers over the buffer to allow buffer to be read and still passed on
-		bodyReaderOriginal := io.NopCloser(bytes.NewBuffer(buf))
-		// restore the original request body once done processing
-		defer recoverBody(r, io.NopCloser(bytes.NewBuffer(buf)))
 
-		body, err := io.ReadAll(bodyReaderOriginal)
-		if err != nil {
-			return ri, err
-		}
+		// restore the request body after reading for downstream use
+		r.Body = io.NopCloser(bytes.NewBuffer(buf))
 
 		// mask all the JSON fields listed in Config.FieldsToMask
-		sanitizedBody, err := t.getMaskedJSON(body)
+		sanitizedBody, err := t.getMaskedJSON(buf)
 		if err != nil {
 			return ri, err
 		}
 
 		ri.Body = sanitizedBody
-
 	}
+
 	headersJson, err := json.Marshal(headers)
 	if err != nil {
 		return ri, err
@@ -83,10 +74,6 @@ func (t *Treblle) getRequestInfo(r *http.Request, startTime time.Time) (RequestI
 	}
 	ri.Headers = sanitizedHeaders
 	return ri, nil
-}
-
-func recoverBody(r *http.Request, bodyReaderCopy io.ReadCloser) {
-	r.Body = bodyReaderCopy
 }
 
 func (t *Treblle) getMaskedJSON(payloadToMask []byte) (json.RawMessage, error) {
