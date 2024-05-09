@@ -3,10 +3,8 @@ package treblle_traefik
 import (
 	"bytes"
 	"encoding/json"
-	"io"
 	"math/rand"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -33,7 +31,7 @@ func (t *Treblle) sendToTreblle(info Metadata) {
 	if err != nil {
 		return
 	}
-	os.Stdout.WriteString(string(jsonData))
+
 	req, err := http.NewRequest(http.MethodPost, baseUrl, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return
@@ -43,9 +41,5 @@ func (t *Treblle) sendToTreblle(info Metadata) {
 	req.Header.Set("x-api-key", t.ApiKey)
 
 	client := &http.Client{Timeout: timeout}
-	res, _ := client.Do(req)
-	defer res.Body.Close()
-
-	body, _ := io.ReadAll(res.Body)
-	os.Stdout.WriteString(string(body))
+	_, _ = client.Do(req)
 }

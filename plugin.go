@@ -3,9 +3,9 @@ package treblle_traefik
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"time"
 )
 
@@ -20,11 +20,13 @@ func CreateConfig() *Config {
 }
 
 type Treblle struct {
-	next      http.Handler
-	name      string
-	ApiKey    string
-	ProjectId string
-	FieldsMap map[string]bool
+	next         http.Handler
+	name         string
+	ApiKey       string
+	ProjectId    string
+	FieldsMap    map[string]bool
+	serverInfo   ServerInfo
+	languageInfo LanguageInfo
 }
 
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
@@ -42,6 +44,9 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	if len(config.AdditionalFieldsToMask) > 0 {
 		t.FieldsMap = generateFieldsToMask(config.AdditionalFieldsToMask)
 	}
+
+	t.serverInfo = getServerInfo()
+	t.languageInfo = getLanguageInfo()
 
 	return t, nil
 }
@@ -71,17 +76,14 @@ func (t *Treblle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Version:   "0.0.1",
 			Sdk:       "go",
 			Data: DataInfo{
+				Server:   t.serverInfo,
+				Language: t.languageInfo,
 				Request:  reqInfo,
 				Response: t.getResponseInfo(rec, startTime),
 			},
 		}
+		os.Stdout.WriteString("Sending data to treblle...")
 		// don't block execution while sending data to Treblle
 		go t.sendToTreblle(ti)
-	}
-}
-
-func dontPanic() {
-	if err := recover(); err != nil {
-		log.Printf("treblle-traefik panic: %s", err)
 	}
 }

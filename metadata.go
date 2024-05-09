@@ -1,5 +1,7 @@
 package treblle_traefik
 
+import "runtime"
+
 type Metadata struct {
 	ApiKey    string   `json:"api_key"`
 	ProjectID string   `json:"project_id"`
@@ -9,6 +11,8 @@ type Metadata struct {
 }
 
 type DataInfo struct {
+	Server   ServerInfo   `json:"server"`
+	Language LanguageInfo `json:"language"`
 	Request  RequestInfo  `json:"request"`
 	Response ResponseInfo `json:"response"`
 }
@@ -31,4 +35,33 @@ type OsInfo struct {
 type LanguageInfo struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
+}
+
+// Get information about the server environment
+func getServerInfo() ServerInfo {
+	return ServerInfo{
+		Ip:        "",
+		Timezone:  "UTC",
+		Software:  "",
+		Signature: "",
+		Protocol:  "",
+		Os:        getOsInfo(),
+	}
+}
+
+// Get information about the programming language
+func getLanguageInfo() LanguageInfo {
+	return LanguageInfo{
+		Name:    "go",
+		Version: runtime.Version(),
+	}
+}
+
+// Get information about the operating system that is running on the server
+func getOsInfo() OsInfo {
+	return OsInfo{
+		Name:         runtime.GOOS,
+		Release:      "",
+		Architecture: runtime.GOARCH,
+	}
 }

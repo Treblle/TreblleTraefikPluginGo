@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -25,8 +26,7 @@ type RequestInfo struct {
 var ErrNotJson = errors.New("request body is not JSON")
 
 func (t *Treblle) getRequestInfo(r *http.Request, startTime time.Time) (RequestInfo, error) {
-	defer dontPanic()
-
+	os.Stdout.WriteString("Getting request info...\n")
 	headers := make(map[string]string)
 	for k := range r.Header {
 		headers[k] = r.Header.Get(k)
