@@ -29,7 +29,7 @@ type Treblle struct {
 	ProjectId         string
 	FieldsMap         map[string]bool
 	RoutesToBlackList []string
-	RoutesRegex       string
+	RoutesRegex       *regexp.Regexp
 	serverInfo        ServerInfo
 	languageInfo      LanguageInfo
 	DebugMode         bool
@@ -47,18 +47,22 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	if config.ProjectId != "" {
 		t.ProjectId = config.ProjectId
 	}
-	if config.RoutesRegex != "" {
-		t.RoutesRegex = config.RoutesRegex
-	}
 	if len(config.AdditionalFieldsToMask) > 0 {
 		t.FieldsMap = generateFieldsToMask(config.AdditionalFieldsToMask)
 	}
 	if len(config.RoutesToBlackList) > 0 {
 		t.RoutesToBlackList = config.RoutesToBlackList
 	}
-
 	if config.DebugMode {
 		t.DebugMode = true
+	}
+	if config.RoutesRegex != "" {
+		re, err := regexp.Compile(config.RoutesRegex)
+		if err != nil {
+			return nil, err
+		}
+
+		t.RoutesRegex = re
 	}
 
 	t.serverInfo = getServerInfo()
@@ -77,18 +81,8 @@ func (t *Treblle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if t.RoutesRegex != "" {
-		re, err := regexp.Compile(t.RoutesRegex)
-
-		if err != nil {
-			if t.DebugMode {
-				logError(err)
-			}
-			t.next.ServeHTTP(w, r)
-			return
-		}
-
-		if re.MatchString(r.RequestURI) {
+	if t.RoutesRegex != nil {
+		if t.RoutesRegex.MatchString(r.RequestURI) {
 			t.next.ServeHTTP(w, r)
 			return
 		}
@@ -123,7 +117,9 @@ func (t *Treblle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Response: t.getResponseInfo(rec, startTime),
 		},
 	}
-	os.Stdout.WriteString("Sending data to treblle...")
+
+	// TODO: for debugging only, remove before launch
+	os.Stdout.WriteString("Sending data to treblle...\n")
 	// don't block execution while sending data to Treblle
 	go t.sendToTreblle(ti)
 }

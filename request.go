@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"net"
 	"net/http"
 	"os"
 	"regexp"
@@ -23,6 +22,7 @@ type RequestInfo struct {
 }
 
 func (t *Treblle) getRequestInfo(r *http.Request, startTime time.Time) (RequestInfo, error) {
+	// TODO: for debugging only, remove before launch
 	os.Stdout.WriteString("Getting request info...\n")
 	headers := make(map[string]string)
 	for k := range r.Header {
@@ -34,7 +34,7 @@ func (t *Treblle) getRequestInfo(r *http.Request, startTime time.Time) (RequestI
 		protocol = "https"
 	}
 	fullURL := protocol + "://" + r.Host + r.URL.RequestURI()
-	ip := extractIP(r.RemoteAddr)
+	ip := extractIP(r)
 
 	ri := RequestInfo{
 		Timestamp: startTime.Format("2006-01-02 15:04:05"),
@@ -128,14 +128,24 @@ func maskValue(valueToMask string, key string) string {
 	return strings.Repeat("*", len(valueToMask))
 }
 
-func extractIP(remoteAddr string) string {
-	// If RemoteAddr contains both IP and port, split and return the IP
-	if strings.Contains(remoteAddr, ":") {
-		ip, _, err := net.SplitHostPort(remoteAddr)
-		if err == nil {
-			return ip
+func extractIP(r *http.Request) string {
+	xForwardedFor := r.Header.Get("X-Forwarded-For")
+	if xForwardedFor != "" {
+		parts := strings.Split(xForwardedFor, ",")
+		return strings.TrimSpace(parts[0])
+	}
+
+	xRealIP := r.Header.Get("X-Real-IP")
+	if xRealIP != "" {
+		return xRealIP
+	}
+
+	remoteAddr := r.RemoteAddr
+	if remoteAddr != "" {
+		if ip := strings.Split(remoteAddr, ":"); len(ip) > 0 {
+			return ip[0]
 		}
 	}
 
-	return remoteAddr
+	return ""
 }
