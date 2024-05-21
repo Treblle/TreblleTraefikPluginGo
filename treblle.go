@@ -12,13 +12,17 @@ const (
 	timeout = 2 * time.Second
 )
 
+var treblleBaseUrls = []string{
+	"https://rocknrolla.treblle.com",
+	"https://punisher.treblle.com",
+	"https://sicario.treblle.com",
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func getBaseUrl() string {
-	treblleBaseUrls := []string{
-		"https://rocknrolla.treblle.com",
-		"https://punisher.treblle.com",
-		"https://sicario.treblle.com",
-	}
-	rand.Seed(time.Now().Unix())
 	randomUrlIndex := rand.Intn(len(treblleBaseUrls))
 
 	return treblleBaseUrls[randomUrlIndex]
