@@ -1,44 +1,45 @@
 package treblle_traefik
 
 import (
-	"context"
+	"bytes"
+	"encoding/json"
+	"math/rand"
 	"net/http"
-
-	"github.com/google/uuid"
+	"time"
 )
 
-type Config struct {
-	ApiKey    string
-	ProjectId string
+const (
+	timeout = 2 * time.Second
+)
+
+func getBaseUrl() string {
+	treblleBaseUrls := []string{
+		"https://rocknrolla.treblle.com",
+		"https://punisher.treblle.com",
+		"https://sicario.treblle.com",
+	}
+	rand.Seed(time.Now().Unix())
+	randomUrlIndex := rand.Intn(len(treblleBaseUrls))
+
+	return treblleBaseUrls[randomUrlIndex]
 }
 
-func CreateConfig() *Config {
-	return &Config{}
-}
+func (t *Treblle) sendToTreblle(info Metadata) {
+	baseUrl := getBaseUrl()
 
-type Treblle struct {
-	next      http.Handler
-	ApiKey    string
-	ProjectId string
-	name      string
-}
-
-func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
-	if len(config.ApiKey) == 0 || len(config.ProjectId) == 0 {
-		return nil, nil
+	jsonData, err := json.Marshal(info)
+	if err != nil {
+		return
 	}
 
-	return &Treblle{
-		next:      next,
-		ApiKey:    config.ApiKey,
-		ProjectId: config.ProjectId,
-		name:      name,
-	}, nil
-}
+	req, err := http.NewRequest(http.MethodPost, baseUrl, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return
+	}
 
-func (t *Treblle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	traceId := uuid.New()
-	w.Header().Add("X-Traefik-Id", traceId.String())
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-api-key", t.ApiKey)
 
-	t.next.ServeHTTP(w, r)
+	client := &http.Client{Timeout: timeout}
+	_, _ = client.Do(req)
 }
