@@ -33,7 +33,7 @@ This plugin allows you to integrate your traefik proxy with Treblle seamlessly s
 experimental:
   plugins:
     treblle:
-      moduleName: "github.com/Treblle/treblle_traefik"
+      moduleName: "github.com/Treblle/TreblleTraefikPluginGo"
       version: "v0.0.1"
 
 # Dynamic configuration

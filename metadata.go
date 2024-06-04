@@ -1,4 +1,4 @@
-package treblle_traefik
+package TreblleTraefikPluginGo
 
 import "runtime"
 
