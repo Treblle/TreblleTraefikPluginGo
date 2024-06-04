@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -21,6 +22,8 @@ type RequestInfo struct {
 }
 
 func (t *Treblle) getRequestInfo(r *http.Request, startTime time.Time) (RequestInfo, error) {
+	// TODO: for debugging only, remove before launch
+	os.Stdout.WriteString("Getting request info...\n")
 	headers := make(map[string]string)
 	for k := range r.Header {
 		headers[k] = r.Header.Get(k)

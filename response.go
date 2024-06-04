@@ -3,6 +3,7 @@ package treblle_traefik
 import (
 	"encoding/json"
 	"net/http/httptest"
+	"os"
 	"time"
 )
 
@@ -24,6 +25,8 @@ type ErrorInfo struct {
 }
 
 func (t *Treblle) getResponseInfo(response *httptest.ResponseRecorder, startTime time.Time) ResponseInfo {
+	// TODO: for debugging only, remove before launch
+	os.Stdout.WriteString("Getting response info\n")
 	responseBytes := response.Body.Bytes()
 	errInfo := ErrorInfo{}
 	var body json.RawMessage

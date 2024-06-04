@@ -1,10 +1,7 @@
 displayName: Treblle
 type: middleware
-import: github.com/Treblle/treblle_traefik
-summary: "This plugin allows you to integrate your traefik proxy with Treblle seamlessly"
+import: github.com/Nelwhix/treblle-traefik
+summary: "[Demo] Using Treblle in traefik"
+
 testData:
   foo: Bar
-iconPath: foo/icon.png
-bannerPath: foo/banner.png
-
-
