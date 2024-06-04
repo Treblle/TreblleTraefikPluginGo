@@ -4,7 +4,7 @@ import: github.com/Treblle/TreblleTraefikPluginGo
 summary: "This plugin allows you to integrate your traefik proxy with Treblle seamlessly"
 testData:
   foo: Bar
-iconPath: foo/icon.png
-bannerPath: foo/banner.png
+iconPath: http://assets.treblle.com/logo-200.png
+bannerPath: http://assets.treblle.com/logo-200.png
 
 
