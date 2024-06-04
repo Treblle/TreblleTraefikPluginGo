@@ -1,4 +1,4 @@
-module github.com/Treblle/traefik-plugin-treblle-go
+module github.com/Treblle/treblle_traefik
 
 go 1.19
 
