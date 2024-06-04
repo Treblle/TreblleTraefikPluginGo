@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"regexp"
 	"time"
 )
@@ -13,7 +12,7 @@ type Config struct {
 	ApiKey                 string
 	ProjectId              string
 	AdditionalFieldsToMask []string
-	RoutesToBlackList      []string
+	RoutesToBlock          []string
 	RoutesRegex            string
 	DebugMode              bool
 }
@@ -23,16 +22,16 @@ func CreateConfig() *Config {
 }
 
 type Treblle struct {
-	next              http.Handler
-	name              string
-	ApiKey            string
-	ProjectId         string
-	FieldsMap         map[string]bool
-	RoutesToBlackList []string
-	RoutesRegex       *regexp.Regexp
-	serverInfo        ServerInfo
-	languageInfo      LanguageInfo
-	DebugMode         bool
+	next          http.Handler
+	name          string
+	ApiKey        string
+	ProjectId     string
+	FieldsMap     map[string]bool
+	RoutesToBlock []string
+	RoutesRegex   *regexp.Regexp
+	serverInfo    ServerInfo
+	languageInfo  LanguageInfo
+	DebugMode     bool
 }
 
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
@@ -50,8 +49,8 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	if len(config.AdditionalFieldsToMask) > 0 {
 		t.FieldsMap = generateFieldsToMask(config.AdditionalFieldsToMask)
 	}
-	if len(config.RoutesToBlackList) > 0 {
-		t.RoutesToBlackList = config.RoutesToBlackList
+	if len(config.RoutesToBlock) > 0 {
+		t.RoutesToBlock = config.RoutesToBlock
 	}
 	if config.DebugMode {
 		t.DebugMode = true
@@ -72,8 +71,8 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 }
 
 func (t *Treblle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if len(t.RoutesToBlackList) > 0 {
-		for _, route := range t.RoutesToBlackList {
+	if len(t.RoutesToBlock) > 0 {
+		for _, route := range t.RoutesToBlock {
 			if r.RequestURI == route {
 				t.next.ServeHTTP(w, r)
 				return
@@ -118,8 +117,6 @@ func (t *Treblle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	// TODO: for debugging only, remove before launch
-	os.Stdout.WriteString("Sending data to treblle...\n")
 	// don't block execution while sending data to Treblle
 	go t.sendToTreblle(ti)
 }
