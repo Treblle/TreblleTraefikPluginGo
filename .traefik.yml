@@ -5,6 +5,4 @@ summary: "This plugin allows you to integrate your traefik proxy with Treblle se
 testData:
   foo: Bar
 iconPath: http://assets.treblle.com/logo-200.png
-bannerPath: http://assets.treblle.com/logo-200.png
-
 
