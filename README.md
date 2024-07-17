@@ -34,7 +34,7 @@ experimental:
   plugins:
     treblle:
       moduleName: "github.com/Treblle/TreblleTraefikPluginGo"
-      version: "v0.0.1"
+      version: "{version-from-github-releases}"
 
 # Dynamic configuration
 http:

@@ -1,4 +1,4 @@
-module github.com/Treblle/treblle_traefik
+module github.com/Treblle/TreblleTraefikPluginGo
 
 go 1.19
 
