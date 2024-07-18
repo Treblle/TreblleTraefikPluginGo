@@ -1,8 +1,16 @@
 displayName: Treblle
 type: middleware
 import: github.com/Treblle/TreblleTraefikPluginGo
-summary: "This plugin allows you to integrate your traefik proxy with Treblle seamlessly"
+summary: This plugin allows you to integrate your traefik proxy with Treblle seamlessly
 testData:
-  foo: Bar
+  ApiKey: your-treblle-api-key
+  ProjectId: your-treblle-project-id
+  AdditionalFieldsToMask:
+    - accessToken
+    - refreshToken
+  RoutesToBlock:
+    - /api/user/login
+    - /ping
+  RoutesRegex: ^/api/projects
 iconPath: .assets/logo-200.png
 
