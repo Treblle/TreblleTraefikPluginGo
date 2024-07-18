@@ -12,5 +12,5 @@ testData:
     - /api/user/login
     - /ping
   RoutesRegex: ^/api/projects
-iconPath: https://assets.treblle.com/logo-200.png
+iconPath: .assets/logo-200.png
 
