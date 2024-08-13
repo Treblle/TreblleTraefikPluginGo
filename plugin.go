@@ -88,7 +88,7 @@ func (t *Treblle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	startTime := time.Now()
-	reqInfo, err := t.getRequestInfo(r, startTime)
+	reqInfo, _ := t.getRequestInfo(r, startTime)
 	rec := httptest.NewRecorder()
 
 	t.next.ServeHTTP(rec, r)
@@ -99,10 +99,7 @@ func (t *Treblle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(rec.Code)
 
-	_, err = w.Write(rec.Body.Bytes())
-	if err != nil {
-		return
-	}
+	_, _ = w.Write(rec.Body.Bytes())
 
 	ti := Metadata{
 		ApiKey:    t.ApiKey,
