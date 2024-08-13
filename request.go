@@ -39,6 +39,7 @@ func (t *Treblle) getRequestInfo(r *http.Request, startTime time.Time) (RequestI
 		Url:       fullURL,
 		UserAgent: r.UserAgent(),
 		Method:    r.Method,
+		Body:      nil,
 	}
 
 	if r.Body != nil && r.Body != http.NoBody {
@@ -47,16 +48,20 @@ func (t *Treblle) getRequestInfo(r *http.Request, startTime time.Time) (RequestI
 			return ri, err
 		}
 
-		// restore the request body after reading for downstream use
-		r.Body = io.NopCloser(bytes.NewBuffer(buf))
+		if len(buf) == 0 {
+			ri.Body = nil
+		} else {
+			// restore the request body after reading for downstream use
+			r.Body = io.NopCloser(bytes.NewBuffer(buf))
 
-		// mask all the JSON fields listed in Config.FieldsToMask
-		sanitizedBody, err := t.getMaskedJSON(buf)
-		if err != nil {
-			return ri, err
+			// mask all the JSON fields listed in Config.FieldsToMask
+			sanitizedBody, err := t.getMaskedJSON(buf)
+			if err != nil {
+				return ri, err
+			}
+
+			ri.Body = sanitizedBody
 		}
-
-		ri.Body = sanitizedBody
 	}
 
 	headersJson, err := json.Marshal(headers)
