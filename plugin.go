@@ -104,8 +104,8 @@ func (t *Treblle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ti := Metadata{
 		ApiKey:    t.ApiKey,
 		ProjectID: t.ProjectId,
-		Version:   "0.0.1",
-		Sdk:       "go",
+		Version:   "1.0.5",
+		Sdk:       "traefik-go",
 		Data: DataInfo{
 			Server:   t.serverInfo,
 			Language: t.languageInfo,
